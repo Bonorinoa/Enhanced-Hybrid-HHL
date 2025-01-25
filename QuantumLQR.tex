@@ -1,0 +1,956 @@
+\documentclass[12pt]{article}
+\usepackage{makeidx}
+\usepackage{multirow}
+\usepackage{multicol}
+\usepackage[dvipsnames,svgnames,table]{xcolor}
+\usepackage{graphicx}
+\usepackage{epstopdf}
+\usepackage{ulem}
+\usepackage{hyperref}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{color}
+\usepackage{soul}
+\title{}
+\usepackage[paperwidth=612pt,paperheight=792pt,top=72pt,right=72pt,bottom=72pt,left=72pt]{geometry}
+\newcommand{\disp}{\displaystyle}
+\newcommand*{\blue}{\textcolor{blue}}
+\newcommand*{\red}{\textcolor{red}}
+\newtheorem{theorem}{Theorem}
+\newtheorem{proposition}{Proposition}
+\newtheorem{definition}{Definition}
+\newtheorem{remark}{Remark}
+\newtheorem{example}{Example}
+\newtheorem{property}{Property}
+\newtheorem{lemma}{Lemma}
+
+%\newtheorem{abstract}{Abstract}
+
+\makeatletter
+    \newenvironment{indentation}[3]%
+    {\par\setlength{\parindent}{#3}
+    \setlength{\leftmargin}{#1}       \setlength{\rightmargin}{#2}%
+    \advance\linewidth -\leftmargin       \advance\linewidth -\rightmargin%
+    \advance\@totalleftmargin\leftmargin  \@setpar{{\@@par}}%
+    \parshape 1\@totalleftmargin \linewidth\ignorespaces}{\par}%
+\makeatother
+\renewcommand*\contentsname{CONTENTS}
+\begin{document}
+\begin{center}
+\textbf{{\huge  Quantum Computing for the time-varying   Linear Quadratic Regulator }}
+    \begin{center} 
+\bigskip
+\bigskip
+    {\large } 
+\end{center}
+\begin{center}
+%\textit{{  \large               
+%School of Computer Sciences  and Mathematics %at Marist College \\  3399 North Road  %Poughkeepsie NY 12601 
+%}} 
+\end{center}
+\end{center}
+\begin{center} 
+\end{center}
+\begin{center} 
+\bigskip
+
+\end{center}
+
+    \begin{center}                                                  {\large} 
+\end{center}
+
+%\begin{center}
+{\Large \bf Abstract:}
+This paper deals with the time-varying Linear-Quadratic Regulator(LQR) problem which is a special case of the general optimal control problem. An explicit value of the control that yields  an optimal solution  of the LQR depends on the integrabiltiy of the Matrix Riccati equation. Unfortunately, there exists no general method to solve analytically the Riccati equation. Analytic solutions  depend on the relationship between the coefficients of the Riccati equation.
+In this paper, we use a quantum computer algorithm to derive the solution of the matrix Riccati equation. Since quantum computer algorithms have the potential to implement faster
+approximate solutions to the Riccati equations compared with strictly classical
+algorithms, this yields a faster implementation and explicit value of the control.
+%\end{center}
+%\vspace{200}
+
+\section{\huge Introduction}
+The Linear-Quadratic Regulator(LQR) in which the dynamics are linear, the costs are quadratic, appears to be the simplest case in dynamic programming problem for continuous system \cite{Bertsekas1}\cite{Todorov} \cite{Bellman}.  It is the most well-studied problem in Optimal Control Theory and  seems to yield   the most important  and influential  results in optimal control theory to date. 
+LQR finds its applications in many branches of science ranging from engineering, econometry \cite{MAHMOUD} and mathematics   to biomedical \cite{Irma} and management sciences \cite{Tung}. It has been applied successfully  to problems  in economic stabilization policy \cite{Pindyck}, in  circuits \cite{Rajakumar}, in social science \cite{Cole},in  statistics \cite{Izumi}, in robotics \cite{Sairoel}  , in water delivery canal  \cite{Lemo} and in solving aviation full tracking problem in aircraft system identification and control \cite{Dul} .
+For the most of   optimal control problem, it is hard  indeed impossible   to compute an analytical value of the control function. We mostly rely on numerical techniques to approximate the value of the control. Generally speaking , computational algorithms are inevitable in solving optimal control problems . 
+ The   LQR  is a notable exception  in which the control  can be computed  analytically. The control can be expressed explicitly  in   term  of the solution of a matrix Riccati equation. 
+Different variant of LQR have been considered in the past and several algorithms have been proposed to estimate the control function.
+The finite-horizon, invariant, continuous time  was considered by many authors. In general, The control is derived using the discrete matrix Riccati equation or continuous Riccati equation \cite{Reid}\cite{Riccati}. In \cite{Nazarzadeh}  The authors used   a method that consists of turning  the matrix Riccati equation into a  Lyapunov differential equation which can be solved using the tensor product.
+Another method was proposed in \cite {Lovren} , the authors proposed a solution of the Riccati equation K(t) as a ratio of two functions that is K(t)=(P(t))/(f(t)) where f(t) and P(t) are solutions of first order  linear differential equations.
+%In see[ the finite discrete case]
+The infinite-horizon, invariant-time, discrete time or continuous time  has been studied by several  authors . Unlike the finite-horizon, the control is computed by solving the algebraic Riccati equation \cite{Douglas}  \cite{Huang} 
+\cite{Weiping}.
+
+
+
+
+In this paper, we consider the finite-horizon, time-variant, continuous time LQR. We investigate the use of quantum algorithms to generate approximate value of the control function.
+ It has been shown  \cite{Harrow} that under certain conditions, quantum algorithms to find the solution of systems of linear differential equations can yield
+an exponential improvement in execution time compared with the best-known classical algorithms.
+
+Our approach
+involves a change of variable  which turns a matrix Riccati  equation into an approximation using linear differential equations with
+second order non-constant coefficients. We can then solve  matrix equations equivalent to the set of linear
+differential equations using a version of the Harrow-Hassidim-Lloyd (HHL) quantum algorithm \cite{Harrow}, for
+the common case of Hermitian matrices.\\
+The paper is organized as follow.
+ Chapter 2 and chapter 3 are respectively an overview of the Optimal
+Control Theory and the time-varying LQR.
+In chapter 4, we explain  the approach  on how to 
+turn the matrix Riccati equation into a set of matrix equations equivalent to a set of system of differential equations.  
+ chapter 5 describes  the algorithm  for finding the control function.
+Chapter 6 is dedicated to the conclusion.
+  
+
+
+
+
+
+
+
+ \section{Optimal Control Theory}
+ The field of Optimal Control, as the name suggests, is a branch of mathematics that deals with analyzing a system to find solutions that cause it to behave optimally for the cost we are willing to pay. If a system  is controllable \cite{Leitman} given an initial state and  some assumptions, then  we can reach a desired state of the system  by finding the appropriate control with minimum cost. Control is handled through a feedback into $u$ that depends on the state of the system .
+ A basic optimal control problem  can be stated as follows:
+ Given the system of differential equations  along with an initial condition,
+ \begin{equation}
+  (S)  \  \frac{dx}{dt}=f(x(t),u(t)), \ \ x(t_0)=x_0
+ \end{equation}
+ where $x(t)$ is the state of the system, $x(t)\in {\mathbb R}^n$, and $u(t)\in {\mathbb R}^m $ is the control.\\
+The goal is to find  a control $u(t)$ over $[t_0, t_f]\ $ which for any $x_0$, 
+minimizes the cost function 
+$$ T(x,u)=\int_{t_0}^{t_f}L(x(t),u(t))dt$$
+%In linear version $(S)$ becomes: $ \frac{dx}{dt}=Ax(t)+Bu(t)$.\\
+To better frame the optimal control problem, let's consider a simple example.
+%\newpage
+\begin{example}
+    Consider the circuit below that consists of resistor, inductor and a source(RL circuit). 
+    \includegraphics[width=8cm]{circuit1.jpg}
+
+    The  circuit  in figure 1 is very frequent in electronic device for filtering signals.\\
+    The behavior of the resistor is specified by  a constant $R$ called resistance.\\
+    The behavior of the inductor is specified by a constant $L$ called inductance.\\
+    $i$ is the current across drop the circuit.
+    $u$ is the control and represents the voltage across  the source.\\
+    According to the Kirchoff's law of current,
+    the sum of the voltage drop across the circuit  in figure 1 equals the voltage across 
+    the source, therefore,
+    $$V_R+V_L=u$$
+    $$Ri+L\frac{di}{dt}=u$$
+    Let $i_o$ be the initial value of the current that is $i(0)=i_0$\\
+    we deal with the system:
+    $$Ri+L\frac{di}{dt}=u$$
+    $$i(0)=i_0$$
+    Suppose that we want to switch the current $i$ from $i_0$ to another value $i_1$ at $t=T$ that is $i(T)=i_1$ with a minimum cost.\\
+    the goal is expressed by the cost functional.
+    $$J(i,u)=\frac{1}{2}\int_{0}^{T} c(i(t)-i_1)^2dt+\frac{1}{2}\int_{0}^{T}c_{u}(u(t))^2dt$$
+ where $c$ and $c_u$ are positive constants and $T$ is the fixed final time $T>0$\\    
+ The first integral is the state cost and the second integral is the control cost.\\
+ We also can assume that that $u$ belongs to a set of admissible control
+ $$U_{ad}=\{u\in L^2([0,T]) |  k_1\leq u\leq k_2 , t\in [0, 1]\} $$
+ where $k_1$ and $k_2$ are constant real numbers.\\
+ Question: What values of $u(t)$ allow this switch with minimum cost?
+\end{example}
+%\newpage
+\subsection{General statement of the optimal control problem. The Pontryagin principle.}
+The basic optimal control problem $(\mathcal{P})$ can be stated as follow:
+Given the system of differential equations along with an initial condition: 
+\begin{equation}
+    \frac{dx}{dt}=f(x(t),u(t)) ,\ \ \ \  x(t_0)=x_0
+\end{equation}
+where $x(t)$ is the state of the system $x(t)\in {\mathbb R}^n$ and $u(t)$ is the input of the system $u(t)\in {\mathbb R}^m.$\\
+The goal is to find a control $u(t)$  over $[t_0, t_f]$
+%which for any $x_0\in {\mathbb R}^n $ 
+that minimizes the cost functional
+$$J(x,u)=\int_{t_0}^{t_f}L(x(t),u(t))dt.$$
+To solve an optimal control problem, we can use the Pontryagin principle which represents some necessary conditions the optimal control $u^*(t)$ and the optimal state $x^*(t)$ need to satisfy.
+\begin{theorem}[Pontryagin's maximum  principle]
+If $x^*(t)$ and $u^*(t)$ are optimal for the problem $(P)$, then there exist a function $\lambda(t)=\left(\begin{array}{c}{\lambda}_1(t)\\
+{\lambda}_2(t)\\
+.\\
+.\\
+.\\
+{\lambda_n(t)} \end{array}\right)$ and a  function 
+$H$ defined as: \\
+$ H(x(t), u(t), \lambda)= {\lambda}^T f(x,u)-L(x,u)$ that satisfy the three properties.\\
+  \\
+$a)H(x^*(t),u^*(t),\lambda(t))\geq  H(x^*(t),u(t),\lambda(t))$\\
+for all control $u$ at each time $t$.\\
+ \\
+$ b) \frac{d\lambda}{dt}=-\nabla_x H(x^*,u^*,\lambda)$\\
+  \\
+c)$ \lambda (t_f )=0$\\
+%($\lambda^T$ represents the transpose of $\lambda$
+
+
+    
+\end{theorem}
+$\lambda^T$ represents the transpose of $\lambda$ and $H$ is called the Hamiltonian.\\
+The Pontryagin's maximum principle yields to the controls that represent
+the candidates for the optimal controls. Those candidates need to be tested. The following theorem gives a sufficient condition for a candidate to be optimal.
+\begin{theorem}
+Let $U(x_0)$ be the set of admissible controls of $u$ and $X$ an open  subset of $ {\mathbb R}^{n}$.
+If there exists a function $J_1:X\rightarrow  {\mathbb R}$ of class $C^1$
+such that the three statements below are true\\
+i)If $u\in U$ generates the solution $x(t)$ of (7) and $x(t)\in X$ for all $t\in [t_0,t_1^*)$, then $lim_{t\rightarrow t_1}J_1(x(t))\leq lim_{t\rightarrow t_1^*}J_1(x^*(t))=0, $
+for some   $t_1^*\geq t_1$\\
+$ii)L(x^{*}(t),u^{*}(t))+grad^{T}J_1(x^*(t))f(x^{*}(t),u^{*}(t))=0$ for
+all $t\in [t_0,t_1^*)$ for some   $t_1^*\geq t_1$\\
+$iii)L(x,u)+grad^TJ_1(x)f(x,u)\geq 0$ for all $x\in X$ and $u\in U$.\\
+Then  the control $u^*(t)$ generating the solution $x^*(t)$  for all $t\in [t_0,t_1^*]$ with $x^*(t_0)=x_0$, is optimal with respect to $X$.
+\end{theorem}
+The proof of the theorem 1 and 2 can be found in \cite{Leitman}.\\
+\begin{remark}The proof of theorem 2  suggests that the test function $J_1(x(t))$ can be chosen so that : $J_1(x_0)=\int_{t_0}^{t_f} L(x(t),u(t))$.
+\end{remark}
+\begin{remark} 
+In case we deal with a nonautonomous system that is  a system in the
+form $$\frac{dx}{dt}=f(x,t,u)\, \,  \, \,  x(t_0)=x_0$$ 
+then we always can turn such system into an autonomous system.\\
+We can define\\
+$$\hat{x}=\left(\begin{array}{c}
+x_1(t)       \\
+x_2(t) \\
+   .\\
+   .\\
+    .\\   
+    x_n(t)\\
+    x_{n+1}(t)\\
+\end{array}\right)$$
+where $x_{n+1}(t)=t$ then we deal with the following autonomous system  $$\frac{d\hat{x}}{dt}=\left(\begin{array}{c}
+  f(\hat{x},u)   \\
+1\\   
+\end{array}\right)
+=
+\hat{f}(\hat{x},u)\, \,  \, \, \, \, \hat{x}(t_0)=\hat{x_0}=(x_0,t_0)$$
+
+
+Also if  the  cost integrand  depends on $t$ that is $J(x,u)=\int_{t_0}^{t_f}L(x,t,u)dt$  then we can rewrite the cost function:
+as  $$\hat{J}(\hat{x},u)=\int_{t_0}^{t_f}\hat{L}(\hat{x},u)dt$$
+
+
+\end{remark}
+Now we can refine the maximum's Pontryagin principle to the autonomous system 
+$$\frac{d\hat{x}}{dt}=\hat{f}(\hat{x},u)\, \,  \, \, \hat{x}(t_0)=\hat{x_0}$$
+with cost function given by:
+$$\hat{J}(\hat{x},u)=\int_{t_0}^{t_f}\hat{L}(\hat{x},u)dt$$
+and then 
+$\hat{\lambda}=
+\left(\begin{array}{c}{\lambda}_1(t)\\
+{\lambda}_2(t)\\
+.\\
+.\\
+.\\
+\lambda_n(t) \\
+\lambda_{n+1}(t)\\
+\end{array}\right) \in \mathbb R^{n+1}$ 
+
+
+
+
+
+
+%The function $J_1$ could also be defined on $X\times I $ where 
+%$I\subset \mathbb R$.
+
+\section{The time-dependent LQR-Riccati Equation. }
+We suppose that $$f(x(t),u(t))=A(t)x(t)+B(t)u(t)$$
+then $$\hat{f}(\hat{x}(t),u(t))=\left(\begin{array}{c}
+  A(t)x(t)+B(t)u(t)      \\
+1\\   
+\end{array}\right)$$
+and
+$$ \hat{L}(\hat{x}(t),u(t))=\frac{1}{2} (x^T(t)Q(t)x(t)+u^T(t)R(t)u(t))$$
+
+then 
+\begin{equation}
+ \frac{d\hat{x}}{dt}=\left(\begin{array}{c}
+  A(t)x(t)+B(t)u(t)      \\
+1\\   
+\end{array}\right)
+\end{equation}
+with initial state $x(t_0)=x_0$ and the interval $[t_0,t_f]$ is specified  and $x(t)=\left(\begin{array}{c}
+x_1(t)       \\
+x_2(t) \\
+   .\\
+   .\\
+    .\\   
+    x_n(t)
+\end{array}\right)$ \\
+ $u(t)=\left(\begin{array}{c}
+u_1(t)       \\
+u_2(t) \\
+   .\\
+   .\\
+    .\\   
+    u_m(t)
+\end{array}\right)$ \\
+The cost to be minimized  is:
+$\hat{J}(\hat{x},u)=\frac{1}{2}\int_{t_0}^{t_f} (x^T(t)Q(t)x(t)+u^T(t)R(t)u(t))dt$
+where $A\in {\mathbb R}^{n\times n}$,  $B\in  {\mathbb R}^{n\times m} $
+$ Q\in {\mathbb R}^{n\times n}$ $R\in {\mathbb R}^{m\times m}$\\
+The matrix  $Q$ is symmetric that is $Q^T=Q$.\\
+The matrix $R$ is symmetric and  positive definite that is $x^TRx>0$ if $x\neq 0$.\\
+The functions $A(t),\, B(t), \, Q(t), \, $ and $R(t)$ are of class $C^1$.\\
+We can use the Pontryagin's maximum principle to find  $u(t)$.\\
+It is already  shown  that $u(t)$ is given  by
+ $$u(t)=-R^{-1}(t)B^T(t)P(t)x(t)$$
+where  $P(t)$ is a solution of the Riccati equation
+
+\begin{equation}
+    \frac{dP(t)}{dt}=P(t)B(t)R^{-1}(t)B^T(t)P(t)-A^T(t)P(t)-P(t)A(t)-Q(t)
+\end{equation}
+satisfying the initial condition $P(t_f)=0.$ (See proof in the Appendix(Theorem 5)).
+\begin{theorem}
+    The  function $u^*(t)=-R^{-1}(t)B^T(t)P(t)x^*(t)$
+is the optimal solution at $x_0$ and the minimum value of $J$ is given
+ by : $$J_{min}=\frac{1}{2}(x^*)^T(t_0)P(t_0)x^*(t_0)$$ 
+ where $x^*$ is the corresponding optimal solution of (2).
+\end{theorem}
+the proof can be found in the Appendix.
+\section{Quantum computing to solve the Matrix Riccati equation}
+
+
+consider the Matrix Riccati equation:
+
+\begin{equation}
+\frac{dY}{dt}=YA(t)Y+ YB(t)+ C(t)Y +D(t) \end{equation} 
+where $Y\in {\mathbb R}^{n\times n}, \ \  A(t) \in {\mathbb R}^{n\times n} ,\
+ \ B(t)\in {\mathbb R}^{n\times n }\  C(t) \in {\mathbb R}^{n\times n}  $ and $D(t) \in{\mathbb R}^{n\times n}. $\\
+\begin{theorem}
+ If $B=0$ and if $A$ is invertible,  then the matrix Riccati equation (5) can be turned into the second order matrix linear differential equation. 
+  \begin{equation}
+      V^{''}-(ACA^{-}+A^{'}A^{-1})V+ADV=0
+      \end{equation}
+      using the change of variable 
+      \begin{equation} Y=-A^{-1}V^{'}V^{-1}
+      \end{equation}
+    where $V$ is invertible.
+ \end{theorem}
+The proof of the theorem is straightforward and can be found in the Appendix.\\
+In the control problem, at some point, we need to solve the following matrix Riccati equation along with the initial.
+$$\frac{dP}{dt}=PB_1R^{-1}B_1^TP-A_1^TP-PA_1-Q(t)$$ 
+$$P(t_f)=0.$$
+We will assume that $R(t)=A_1(t)=I$  where $I$ represents the $n\times n$ identity.
+ 
+
+
+So $$\frac{dP}{dt}=PB_1B_1^TP-2P-Q$$
+Let's make the change of variable  $$P=-(B_1B_1^t)^{-1}V^{'}V^{-1}$$ according to the previous theorem.\\
+This leads to the following equation:
+$$V^{''}-(-2B_1B_1^T(B_1B_1^T)^{-1}-(B_1B_1^T)^{'}(B_1B_1^T)^{-1})V^{'}-B_1B_1^TQV=0$$
+$$V^{''}+(2I+(B_1B_1^T)^{'}(B_1B_1^T)^{-1})V^{'}-B_1B_1^TQV=0$$
+Choose $B_1$ and $Q$ such that $B_1B_1^TQ=I$ and $ 2I+(B_1B_1^T)^{'}(B_1B_1^T)^{-1}=-S$
+where $S$ is a constant diagonal matrix. \\
+So $Q=(B_1B_1^T)^{-1}$ and  $(B_1B_1^T)^{'}(B_1B_1^T)^{-1}=kI $ or $(B_1B_1^T)^{'}=kB_1B_1^T$\\
+Notice that since $P(t_f)=0$ then  $V^{'}(t_f)=0$.\\	
+We need to solve the initial problem:
+\begin{equation}
+V^{''}-SV^{'}-V=0  
+\end{equation}  
+$$V^{'}(t_f)=0$$ where $S$ is a  constant diagonal matrix \\
+
+$$
+S=\begin {bmatrix} \alpha_1&\cdots&0\\
+\vdots & \ddots&\vdots\\
+0& \cdots & \alpha_n\\
+\end{bmatrix}
+$$
+Let $$V=(V_{ij}) \, \, \,  1\leq i\leq n \, \, \,  1\leq i \leq n$$
+Then the previous equation yields the the following equation:
+\begin{equation}
+V_{ij}^{''}-\alpha_iV_{ij}^{'}-V_{ij}=0
+\end{equation}
+Then $V_{ij} $ and $V_{ii}$ have the same general equation for any $1\leq j\leq n$  
+So we can focus on $V_{ij}$ and then derive $ V_{ij}$ from $V_{ii}$.\\
+Solving 
+\begin{equation}
+V_{ii}-\alpha_iV_{ii}^{'}-V_{ii}=0    
+\end{equation}
+Assuming that $V_{ii}^{'}(t_f)=0$ .\\
+We want to Leverage the HHL algorithm so we need to turn the previous equations into a system of equations.
+Introduce
+$$W_{ii}=V_{ii}^{'}$$
+$$W_{ii}^{'}=V_{ii}^{''}+\alpha_iW_{ii}$$
+So we obtain the following  system:
+\begin{equation}
+%\begin{table}[]
+\begin{tabular}{ccr}
+$V_{ii}^{'}$&=& $W_{ii}$\\
+$W_{ii}^{'}$&=& $V_{ii}+\alpha W_{ii}$
+\end{tabular}
+%\end{table}
+\end{equation}
+\\
+\\
+Let $\, \, X_{ii}=\begin{bmatrix}
+V_{ii}\\
+V_{ii}^{'}\\
+\end{bmatrix}$.\\
+So  system (11)can be written as:
+\begin{equation}
+\frac{X_{ii}}{dt}=M_iX_{ii}
+\end{equation}
+where  $$M_i=\begin{bmatrix}
+                           0&1\\
+                           1&\alpha_i\\
+                            \end{bmatrix}$$
+and  $$X_{ii}=\begin{bmatrix}
+                       V_{ii}\\
+                        V_{ii}^{'}\\
+                       \end{bmatrix}$$
+One way to  find the solution  of  system (12) along with the initial condition $V_{ii}^{'}(t_f)=0$, is to turn it to the following system:
+$$e^{-M_it}X_{ii}=e^{-M_i}X_{ii}(t_f)$$ or
+$$e^{-M_i(t-t_f)}X_{ii}=\begin{bmatrix}
+                                 V_{ii}(t_f)\\
+                                 0\\
+                                \end{bmatrix}
+                                            $$
+
+Computing   $e^{-tM_{i}}$	
+
+$$M_i=\begin{bmatrix} 
+                 0& 1\\
+                  1&\alpha_i\\
+                \end{bmatrix}
+$$
+$M_i$ has two eigenvalues: $\lambda_i^1$ and  $\lambda_i^2$ expressed as:
+$$\lambda_i^{1}=\frac{\alpha_i+\sqrt{(\alpha_i)^2+4}}{2}$$
+$$\lambda_i^{2}=\frac{\alpha_i-\sqrt{(\alpha_i)^2+4}}{2}$$
+The eigenvector associated with $\lambda_i^1$: $w_i^1=\begin{bmatrix}
+         1\\
+        \lambda_i^1\\
+        \end{bmatrix}$
+\\
+The eigenvector associated with $\lambda_i^2$: $w_i^2=\begin{bmatrix}
+    1\\
+    \lambda_i^2\\
+    \end{bmatrix}$
+\\
+The passage matrix is given by :
+$$P_i=\begin{bmatrix}
+             1&1\\
+            \lambda_i^1&\lambda_i^2\\
+               \end{bmatrix}
+$$
+Then  $$
+   P_i^{-1}=\frac{1}{\lambda_i^2-\lambda_i^1}\begin{bmatrix}
+                                        \lambda_i^2& -1\\
+                                        \lambda_i^1&1\\
+                                        \end{bmatrix}
+$$
+Since $M_{i}=P_iD_iP_i^{-i}$ where   $D_i=\begin{bmatrix}
+                                        \lambda_i^1&0\\
+                                         0& \lambda_i^2\\
+                                    \end{bmatrix}
+                           $
+Therefore 
+$$e^{-tM_{i}}=P_ie^{-tD_i}P_i^{-1}$$
+After calculation, 
+$$e^{-tM_{i}}=\begin{bmatrix}
+                            \frac{\lambda_i^2e^{-\lambda_i^1t}-\lambda_i^1e^{-\lambda_i^2t}}{\lambda_i^2-\lambda_i^1}& \frac{-e^{-\lambda_i^1t}+e^{-\lambda_i^2t}}{ \lambda_i^2-\lambda_i^1}\\
+\frac{-e^{-\lambda_i^1t}+e^{-\lambda_i^2t}}{ \lambda_i^2-\lambda_i^1}&
+\frac{-\lambda_i^1e^{-\lambda_i^1t}+\lambda_i^2e^{-\lambda_i^2t}}{\lambda_i^2-\lambda_i^1}\\
+\end{bmatrix}
+$$
+then
+$$e^{-M_{i}(t-t_f)}=\begin{bmatrix}
+                            \frac{\lambda_i^2e^{-\lambda_i^1(t-t_f)}-\lambda_i^1e^{-\lambda_i^2(t-t_f)}}{\lambda_i^2-\lambda_i^1}& \frac{-e^{-\lambda_i^1(t-t_f)}+e^{-\lambda_i^2(t-t_f)}}{ \lambda_i^2-\lambda_i^1}\\
+\frac{-e^{-\lambda_i^1(t-t_f)}+e^{-\lambda_i^2(t-t_f)}}{ \lambda_i^2-\lambda_i^1}&
+\frac{-\lambda_i^1e^{-\lambda_i^1(t-t_f)}+\lambda_i^2e^{-\lambda_i^2(t-t_f)}}{\lambda_i^2-\lambda_i^1}\\
+\end{bmatrix}
+$$
+Now solving the system 
+$$  e^{-M_i(t-t_f)}X_{ii}=X_{ii}(t_f)=\begin{bmatrix}
+                                     V_{ii}\\
+                                     0\\
+                                     \end{bmatrix}$$
+$1\leq i\leq n$, is equivalent  of finding    the solution of the following system:
+
+\begin{equation}
+    H\begin{bmatrix}X_{11}\\
+                    \vdots\\
+                    X_{nn}\\
+                    \end{bmatrix}=
+      \begin{bmatrix}X_{11}(t_f)\\
+                     \vdots\\
+                     X_{nn}(t_f)\\
+                      \end{bmatrix} 
+\end{equation}
+
+where
+\begin{equation}
+H=    \begin{bmatrix}
+e^{-M_1(t-t_f)}&\cdots& 0\\
+\vdots& \ddots & \vdots\\
+0&\cdots & e^{-M_i(t-t_f)}\\ 
+ \end{bmatrix}
+\end{equation}
+Notice that $H$ is  sparse. It is also Hermitian  since $e^{-tM_{ii}}$ is Hermitian for all $1\leq i\leq n$.\\
+Since there are $2n$ variables  then the  algorithm for solving linear systems of equations shows that the quantum computers  could solve the system in time scale of order $log(2n)$ giving an exponential speed up over classical computers.\\
+The next section describes   an algorithm for finding the control $u$ in the case $n=2$.
+\section{Algorithm}
+If $B_1B_1^TQ=-I$   and $2I+(B_1B_1^T)^{'}(B_1B_1^T)^{-1}$  is not a constant diagonal matrix then display error message: Halt program.
+$$\alpha_{1}=ent_{11}(2I+(B_1B_1^T)^{'}(B_1B_1^T)^{-1})$$
+$$\alpha_{2}=ent_{22}(2I+(B_1B_1^T)^{'}(B_1B_1^T)^{-1})$$
+
+$$\lambda_{1}^1\leftarrow \frac{\alpha_{1}+\sqrt{(\alpha_{1})^2+4}}{2}$$
+$$\lambda_{1}^2\leftarrow \frac{\alpha_{1}-\sqrt{(\alpha_{1})^2+4}}{2}$$
+$$\lambda_{2}^1\leftarrow \frac{\alpha_{2}+\sqrt{(\alpha_{2})^2+4}}{2}$$
+
+$$\lambda_{2}^2\leftarrow \frac{\alpha_{2}-\sqrt{(\alpha_{2})^2+4}}{2}$$
+%The eigenvectors associated:
+%$$V_{11}^{i}=\begin{bmatrix}
+%                  \lambda_{1}^i\\
+%                  \end{bmatrix}$$
+
+%$$V_{22}^{i}=\begin{bmatrix}
+%                  1\\
+%                  \lambda_{2}^i
+%                  \end{bmatrix}\\
+%                  $$
+%$i=1,2$\\
+%Next, construct  $2\time 2$ passage matrices:
+
+%$$P_{11}=\begin{bmatrix} V_{11}^1 & V_{11}^2\\
+%\end{bmatrix}$$
+%$$P_{22}=\begin{bmatrix} V_{22}^1 & V_{22}^2\\
+%\end{bmatrix}$$
+  
+$$e^{-M_{i}(t-t_f)}\leftarrow\begin{bmatrix}
+                            \frac{\lambda_i^2e^{-\lambda_i^1(t-t_f)}-\lambda_i^1e^{-\lambda_i^2(t-t_f)}}{\lambda_i^2-\lambda_i^1}& \frac{-e^{-\lambda_i^1(t-t_f)}+e^{-\lambda_i^2(t-t_f)}}{ \lambda_i^2-\lambda_i^1}\\
+\frac{-e^{-\lambda_i^1(t-t_f)}+e^{-\lambda_i^2(t-t_f)}}{ \lambda_i^2-\lambda_i^1}&
+\frac{-\lambda_i^1e^{-\lambda_i^1(t-t_f)}+\lambda_i^2e^{-\lambda_i^2(t-t_f)}}{\lambda_i^2-\lambda_i^1}\\
+\end{bmatrix}
+$$
+$$M\leftarrow \begin{bmatrix}
+                 e^{-M_1(t-t_f)}&0\\
+                  0& e^{-M_2(t-t_f)}\\
+                  \end{bmatrix}
+$$
+
+ Using HHL, Solve 
+ $$M\begin{bmatrix}
+     X_{11}\\
+     X_{22}\\
+ \end{bmatrix}
+ =\begin{bmatrix}
+     X_{11}(t_f)\\
+     X_{22}(t_f)\\
+ \end{bmatrix}$$
+ that is $$M\begin{bmatrix}
+     V_{11}\\
+     V_{11}^{'}\\
+     V_{22}\\
+     V_{22}^{'}\\
+     \end{bmatrix}
+     =\begin{bmatrix}
+V_{11}(t_f)\\
+ 0\\
+ V_{22}(t_f)\\
+   0\\
+ \end{bmatrix}
+     $$
+     
+ Find $V_{11}(t)$ and $V_{22}(t)$   \\
+ $V_{12}$  is obtained from $V_{11}$ by replacing  $V_{12}(t_f)$  by $V_{11}(t_f)$\\
+  $V_{21}$  is obtained from $V_{22}$ by replacing  $V_{21}(t_f)$  by $V_{22}(t_f)$\\
+
+  So $$V\leftarrow(V_{ij})_{1\leq i,j \leq n} $$
+
+
+ $$ P\leftarrow  -(B_1^T)^{-1}B_1^{-1}V^{'}V^{-1}$$
+ Finally the control $u$ is given by:
+ $$u\leftarrow-R^{-1}B_1^TP(t)\begin{bmatrix}
+     x_1(t)\\
+     x_2(t)\\
+ \end{bmatrix}$$
+ Since $R=I$
+ then
+ $$u\leftarrow-B_1^TP(t)\begin{bmatrix}
+     x_1(t)\\
+     x_2(t)\\
+ \end{bmatrix}$$
+
+\large{End of the algorithm}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Example}
+
+Consider the optimal control problem :
+$$\frac{dx}{dt}=A_1x+B_1u   \ \ \ t\in[0, 1] $$
+so $t_f=1$
+$$J(x,u)=\frac{1}{2}\int_0^1 (x^TQx+u^TRu)dt$$
+    where $$ A_1(t)=I=\begin{bmatrix}
+        1&0\\
+        0&1\\
+    \end{bmatrix},   \ \ \ \  B(t)=\left (\begin{array}{cc}e^{t/2}&
+-e^{t/2}\\
+e^{t/2}&e^{t/2}\end{array}\right ), \ \ \ R=I ,\ \ \ so \, \,
+Q=\left(\begin{array}{cc}\frac{1}{2}e^{-t}&0\\
+0&\frac{1}{2}e^{-t}\end{array}\right ) $$
+
+Find the control $u$ that minimizes $J(x,u)$
+using the algorithm.\\ 
+
+
+\section{conclusion}
+
+\begin{thebibliography}{99}
+\bibitem{Bertsekas1}
+Dimitri P. Bertsekas, Dynamic Programming and Optimal Control
+by Dimitri P. Bertsekas, Vol.1, fourth edition,2017,
+ISBNs: 1-886529-43-4
+\bibitem{Todorov}
+Todorov, Emanuel. "Optimal control theory." (2006).
+\bibitem{Bellman}
+Bellman, Richard E.. Dynamic Programming, Princeton: Princeton University Press, 2010. https://doi.org/10.1515/9781400835386
+\bibitem{MAHMOUD}
+Mahmoud, M. S.,  Hanna, M. T. (1982). Linear optimal control of national econometric models. International Journal of Systems Science, 13(10), 1061–1081. https://doi.org/10.1080/00207728208926411
+
+\bibitem{Irma}
+Irma Y. , Rubén Morales-Menéndez and Sergio O.,
+Linear quadratic control problem in biomedical engineering, Elsevier, Vol. 20,
+pp 1195-1200, 2005,
+ https://doi.org/10.1016/S1570-7946(05)80041-0.
+
+\bibitem{Tung}
+Tung Le and Hai L. Vu and Yoni Nazarathy and Bao Vo and Serge Hoogendoorn, Linear-Quadratic Model Predictive Control for Urban Traffic Networks, Procedia - Social and Behavioral Sciences, vol.80, pp512-530,2013,
+https://doi.org/10.1016/j.sbspro.2013.05.028.
+
+\bibitem{Pindyck}
+R. Pindyck, An application of linear quadratic tracking problem to economic stabilization policy, in IEEE Transaction on Automatic Control, Vol.17, No. 3, pp. 287-300, June 1972, doi:10.1109/TAC.197.1100010
+
+\bibitem{Rajakumar}
+Rajakumar, V., Anbukumar, K., Selwynraj Arunodayaraj, I. (2017). Power Quality Enhancement Using Linear Quadratic Regulator Based Current-controlled Voltage Source Inverter for the Grid Integrated Renewable Energy System. Electric Power Components and Systems, 45(16), 1783–1794. https://doi.org/10.1080/15325008.2017.1378773
+
+\bibitem{Cole}
+Cole, D. J., Pick, A. J.,  Odhams, A. M. C. (2006). Predictive and linear quadratic methods for potential application to modelling driver steering control. Vehicle System Dynamics, 44(3), 259–284. https://doi.org/10.1080/00423110500260159
+
+\bibitem{Izumi}
+Izumi, S., Xin, X. Reduction of data amount in data-driven design of linear quadratic regulators. Control Theory Technol. 22, 532–542 (2024). https://doi.org/10.1007/s11768-024-00220-y
+
+\bibitem{Sairoel}
+Sairoel Amertet, Girma Gebresenbet and Hassan Mohammed Alwan, Optimizing the performance of a wheeled mobile robots for use in agriculture using a linear-quadratic regulator, Robotics and Autonomous Systems,vol.174,
+(2024)104642,
+https://doi.org/10.1016/j.robot.2024.104642.
+
+\bibitem{Lemo}
+J.M. Lemos and L.F. Pinto,Distributed Linear-Quadratic 
+Control of Serially Chained Systems: Application to Water Delivery canal, in IEEE Control Systems Magazine, Vol.32,
+No.6, pp26-38, Dec.2012,
+doi;10.1109/MCS.2012.2214126.
+
+\bibitem{Dul}
+Dul F., Lichota P., Rusowicz A., Generalized Linear Quadratic Control for a Full Tracking Problem in Aviation. Sensors.2020;20(10):2955.https://doi.org/10.3390/s 20102955
+
+\bibitem{Reid}
+W.T. Reid. Riccati Differential Equations, Academic Press, New York, 1980.
+
+\bibitem{Riccati}
+ https://mathshistory.st-andrews.ac.uk/Biographies/Riccati
+ 
+
+\bibitem{Nazarzadeh}
+J. Nazarzadeh, M. Razzaghi, K.Y. Nikravesh,
+Solution of the matrix Riccati equation for the linear quadratic control problems,
+Mathematical and Computer Modelling,
+Volume 27, Issue 7,
+1998,
+Pages 51-55,
+https://doi.org/10.1016/S0895-7177(98)00035-1.
+
+\bibitem{Lovren}
+N.Lovren and M.Tomic, Analytic solution of the Riccati equation for the homing missile linear quadratic control problem, J.Guidance, Cont. Dynamics 17, 619-621,(1994).
+
+\bibitem{Douglas}
+Douglas J. Bender and Alan J. Laub, The linear-quadratic optimal regulator for descriptor systems: Discrete-time case, Automatica,vol. 23, no.1, pp 71-85, 1987, https://doi.org/10.1016/0005-1098(87)90119-1.
+
+\bibitem{Huang}
+Huang, Jian-Ping and Zhou, Hua-Cheng, Infinite Horizon Linear Quadratic Optimal Control Problems for Singular Volterra Integral Equations, SIAM Journal on Control and Optimization,Vol. 63, No1, PP 57-85, 2025, doi=10.1137/24M1641713, https://doi.org/10.1137/24M1641713.
+
+\bibitem{Weiping}
+Weiping Wu , Jianjun Gao , Jun-Guo Lu and Xun Li, On continuous-time constrained stochastic linear–quadratic control, Automatica, vol. 114, pp108809,2020,
+https://doi.org/10.1016/j.automatica.2020.108809.
+
+\bibitem{Harrow}
+A. W. Harrow, A. Hassidim and S. Lloyd, “Quantum algorithm for linear systems of equations,” Physical
+Review Letters, vol. 103, no. 15, pp. 150502, 2009. https://doi.org/10.1103/PhysRevLett.103.150502
+
+
+ \bibitem{Leitman}
+ Leitman Gorge, The Calculus of Variations and Optimal control. Plenum Press. NY$\&$  London, 1981 
+% \bibitem{Fraga}
+%Fraga, E. S, The Schrodinger and Riccati %equations, Springer, Berlin,
+%Vol. 70(1999): Lecture Notes in %Chemistry Vol.70.Springer, Berlin.
+%https://doi.org/10.1007/978-3-642-51458-6
+ 
+ %\bibitem{Schwabl}
+%Scwabl,F (1992) Quantum Mechanics. Springer, Berlin.
+%https//doi.org/10.1007/978-3-662-02703-5
+
+%\bibitem{Hisham}
+%Hisham Abou-Kandil, Gerhard Freiling, %Vlad Ionescu, Gerhard Jank,
+%Matrix Riccati Equations in Control and %Systems Theory.
+% Birkhäuser Basel 2003.
+% \bibitem{Kalman}
+%%Kalman, R.E and Bucy, R.S. New result s %in linear filtering and prediction %theory, J. Basic Engineering(ASME %trans.) 83D(1961),95-108
+%\bibitem{Boyle}
+%P.P. Boyle, W. Tian and Fred Guan, The %Riccati Equation in Mathematical %Finance, J. Symbolic Computation (2002) %%{\bf{33}} , 343-355.
+%http://www.idealibrary.com
+%\bibitem{Ndiaye}
+%Ndiaye M, matrix  Riccati Equation in Optimal control. Applied mathematics(2024), {\bf 15}, 199-213.  
+
+
+%\bibitem{Ince} 
+% Ince, E.L.; Ordinary Differential %Equations, Dover Publications, New York, %1956.
+ %\bibitem{Jack}
+ %Jack Mack,Aaron Strauss, Introduction %to Optimal Control Theory, 
+ %Springer Verlag 1981.
+ %\bibitem{Dald}
+%Dald E. Kirk, Optimal Control Theory:: An Introduction. Dover Publications 2004.
+%\bibitem{Vladimir}
+%\red{Vladimir Kucera, A review of the Matrix Riccati equation,
+%Kybernetica, Vol.9(1973), No.1(42)--61}
+\end{thebibliography}
+\vspace{14mm}
+
+{\bf Appendix}\\
+\\
+\textit{{\bf Theorem 4.}
+ If $B=0$ and if $A$ is invertible,  then the matrix Riccati equation (19) can be turned into the second order matrix linear differential equation. 
+  \begin{equation}
+      V^{''}-(ACA^{-}+A^{'}A^{-1})V+ADV=0
+      \end{equation}
+      using the change of variable 
+      \begin{equation} Y=-A^{-1}V^{'}V^{-1}
+      \end{equation}
+    where $V$ is invertible.}
+
+  \begin{proof}
+     $$Y^{'}=-(A^{-1})^{'}U^{'}U^{-1}+A^{-1}U^{''}U^{-1}+A^{-1}U^{'}(U^{-1})^{'}$$
+     Using  (2) on $U$ ,
+    $$Y^{'}=-(A^{-1})^{'}U^{'}U^{-1}+A^{-1}U^{''}U^{-1}+A^{-1}U^{'}U^{-1}U^{'}U^{-1}$$ 
+    Since $$Y^{'}=A^{-1}U^{'}U^{-1}U^{'}U^{-1}-CA^{-1}U^{'}U^{-1}+D$$
+    then 
+  $$ -(A^{-1})^{'}U^{'}U^{-1}+A^{-1}U^{''}U^{-1}+A^{-1}U^{'}U^{-1}U^{'}U^{-1}=
+   A^{-1}U^{'}U^{-1}U^{'}U^{-1}-CA^{-1}U^{'}U^{-1}+D$$
+   Using (2) on $A$ and after simplification , we obtain
+ %  $$A^{'}A^{-1}U^{'}-U^{''}=ADU-ADU-ACA^{-1}U^{'}$$
+   $$U^{''}-(ACA^{-1}+A^{'}A^{-1})U^{'}+ADU=0$$
+
+\end{proof}  
+ 
+
+
+\begin{theorem}
+The control function that minimizes the cost is given  by:
+ $$u(t)=-R^{-1}(t)B^T(t)P(t)x(t)$$
+where  $P(t)$ is a solution of the Riccati equation
+
+\begin{equation}
+    \frac{dP(t)}{dt}=P(t)B(t)R^{-1}(t)B^T(t)P(t)-A^T(t)P(t)-P(t)A(t)-Q(t)
+\end{equation}
+satisfying the initial condition $P(t_f)=0.$ 
+\end{theorem}
+\begin{proof}
+The Hamiltinian $H$ of the problem is given by :
+\begin{equation}
+H(\hat{x},u,\hat{\lambda})=\hat{\lambda}^T \left(\begin{array}{c}
+  A(t)x(t)+B(t)u(t)      \\
+1\\   
+\end{array}\right)-\frac{1}{2}(x^TQx+u^TRu)
+\end{equation}
+\begin{equation}
+H(\hat{x},u,\hat{\lambda})=\lambda^TAx+\lambda^TBu+\lambda_{m+1}-\frac{1}{2}x^TQx-\frac{1}{2}u^TRu
+\end{equation}
+The adjoint equations are:
+
+$$\frac{\partial \hat{\lambda}}{\partial t}=-\nabla_{\hat{x} }H$$
+
+which implies
+$$\frac{\partial \lambda}{\partial t}=-\nabla_x H$$
+
+Since $Q$ and $R$ are symmetric then
+$$\nabla_x(x^TQx)=2Qx \ \ \ \  \nabla_x(x^TRx)=2Rx$$
+therefore
+$$\frac{\partial\lambda }{\partial t}=-A^T(t)\lambda(t)+Q(t)x(t)$$
+Moreover, since there is non constraint on $u$, therefore 
+\begin{equation}
+\nabla _u H=0 
+\end{equation}
+so from (17) and  (18) 
+\begin{equation}
+    B^T\lambda-Ru=0
+\end{equation}
+therefore 
+\begin{equation}
+u=R^{-1}(t)B^T(t)\lambda(t)
+\end{equation}
+The goal is to express $\lambda$ in term of $x(t)$. Let's replace  $u(t)$ in the system of equations (3), we obtain
+\begin{equation}
+    \frac{dx}{dt}=A(t)x(t)+B(t)R^{-1}(t)B^T(t)\lambda(t)
+\end{equation}
+therefore, we get the following system with $2n$ variables
+
+\begin{equation}
+\{ \begin{array}{ccc} \frac{dx}{dt}&=& A(t)x(t)+B(t)R^{-1}(t)B^T(t)\lambda(t)\\
+ \frac{d\lambda}{dt}&=&Q(t)x(t)-A^T(t)\lambda(t)\end{array}
+\end{equation}
+that has a unique solution $(x(t),\lambda(t))$  given an initial condition.\\
+Using the matrix representation,
+\begin{equation}
+    \frac{d}{dt} \left ( \begin{array}{c} x(t)\\
+
+    
+       \lambda(t)\end{array}\right )= H(t)\left (\begin{array}{c} x(t)\\ \lambda(t)\end{array}\right )
+\end{equation}
+where 
+\begin{equation}
+    H(t)=\left (\begin{array}{cc}A(t)& B(t)R^{-1}B^T(t)\\
+       Q(t)&-A^T(t)\end{array}\right )
+\end{equation}
+therefore 
+$$ \left (\begin{array}{c}x(t)\\
+\lambda(t)\end{array}\right)=M(t,t_0)\left (\begin{array}{c}x(t_0)\\
+\lambda(t_0)\end{array}\right) $$
+where
+$$M(t,t_0)=e^{\int_{t_0}^t H(\tau)d\tau}$$
+In particular
+$$ \left (\begin{array}{c}x(t_f)\\
+\lambda(t_f)\end{array}\right)=M(t_f,t)\left (\begin{array}{c}x(t)\\
+\lambda(t)\end{array}\right) $$ 
+for all $t\in[t_0,t_f]$\\
+dividing $M(t_f,t)$ into blocks of $n\times n$ matrices \\
+\begin{equation}
+   \left (\begin{array}{c}x(t_f)\\
+\lambda(t_f)\end{array}\right)=\left ( \begin{array}{cc}M_{11}(t_f,t)&M_{12}(t_f,t)\\
+M_{21}(t_f,t)&M_{22}(t_f,t)\end{array}\right )
+\left (\begin{array}{c}x(t)\\
+\lambda(t)\end{array}\right)    
+\end{equation}
+where  $M_{ij}$ are  $n\times n $ matrices $1\leq i,j\leq 2$.\\
+%Since $M(t_f,t)= e^{\int_{t_f}^t H(t)dt} $ then 
+%$M(t_f,t_f)=I=\left (\begin{array}{cc}I_n &0\\
+%0&I_n \end{array}\right )$\\
+%then $\ \ M_{11}(t_f,t_f)=I_n \ \ \ \ \ \ M_{12}(t_f,t_f)=0\ \ \ \ \ \   %M_{21}(t_f,t_f)=0 \ \ \ \ \ \  M_{22}(t_f,t_f)=I_n$.\\
+Therefore 
+$$x(t_f)=M_{11}(t_f,t)x(t)+M_{12}(t_f,t)\lambda(t)$$
+          $$\lambda(t_f)=0=M_{21}(t_f,t)x(t)+M_{22}(t_f,t)\lambda(t).$$
+Since $\lambda(t)$ is unique  then  $M_{22}(t_f,t)$ must be  invertible,  
+ therefore
+$$\lambda(t)=-M_{22}^{-1}(t_f,t)M_{21}(t_f,t)x(t)$$
+Let $P(t)=M_{22}^{-1}(t_f,t)M_{21}(t_f,t)$ \\
+So 
+\begin{equation}
+    \lambda(t)=-P(t)x(t) 
+\end{equation}
+From (20) and (26), $u(t)=-R^{-1}(t)B^T(t)P(t)x(t).$\\
+Let's find $P(t)$.\\
+Taking the derivative in both sides of the equation (26),and using (21) we obtain
+\begin{equation}
+    \frac{d\lambda(t)}{dt}=-\frac{dP(t)}{dt}x(t)-P(t)A(t)x(t)+P(t)A(t)x(t)+P(t)B(t)R^{-1}(t)B^T(t)P(t)x(t).
+\end{equation}
+Using (22) and (27), we get the following equation:
+\begin{equation}
+    \frac{dP(t)}{dt}+P(t)A(t)-P(t)B(t)R^{-1}(t)B^T(t)P(t)+Q(t))u(t)=0.
+\end{equation}
+This equation holds for all $t_0\leq t\leq t_f$.\\
+So $P(t)$ is a solution  of solution of the Matrix Riccati equation:
+\begin{equation}
+    \frac{dP(t)}{dt}=P(t)B(t)R^{-1}(t)B^T(t)P(t)-A^T(t)P(t)-P(t)A(t)-Q(t)
+\end{equation}
+satisfying the initial condition $P(t_f)=0.$
+\end{proof}
+
+\textit{{\bf Theorem 3.}
+    The  function $u^*(t)=-R^{-1}(t)B^T(t)P(t)x^*(t)$
+is the optimal solution at $x_0$ and the minimum value of $J$ is given
+ by : $$J_{min}=\frac{1}{2}(x^*)^T(t_0)P(t_0)x^*(t_0)$$ 
+ where $x^*$ is the corresponding optimal solution of (2).}
+
+
+
+\begin{proof}
+
+First notice that $P(t)$ is symmetric that is $P(t)^T=P(t)$.
+Let's take the transpose in both side of the equation (29), we obtain:\\
+$$\frac{dP^T(t)}{dt}=P^T(t)B(t)({R^{-1}})^T(t)B^T(t)P^T-P^T(t)A(t)-A^T(t)P(t)-Q^T(t).$$
+Since R and Q are symmetric then
+$$\frac{dP^T(t)}{dt}=P^T(t)B(t)R^{-1}(t)B^T(t)P^T-P^T(t)A(t)-A^T(t)P(t)-Q(t)$$
+which shows that $P^T(t)$ is also a solution of (29) satisfying $P^T(t_f)=0$.\\
+Since the solution of (29) along with initial condition $ P^T(t_f)=0$, is
+unique therefore\\
+$P^T(t)=P(t)$.\\
+Now to show that $J_{min}=\frac{1}{2}x^T(x_0)P(t_0)x(t_0)$, we first can show that 
+$$\frac{d}{dt}(x^TPx)=-(x^TQ(t)x+u^TR(t)u)$$
+$$\frac{d}{dt}(x^TPx)=\frac{dx^T}{dt}Px+x^T\frac{dP}{dt}x+x^TP\frac{dx}{dt}.$$
+Since $P$ is symmetric then we can easily verify that $(\frac{dx}{dt})^TPx=x^TP\frac{dx}{dt}$.\\
+Therefore $$\frac{d}{dt}(x^TPx)=2x^TP\frac{dx}{dt}+x^T\frac{dP}{dt}x$$
+Using (22), (26) and (29)
+$$\frac{d}{dt}(x^TPx)=2x^TP(Ax-BR^{-1}B^TPx)+\frac{d}{dt}(x^TPx)-A^TP-PA-Q)x$$
+Since $A^TP=(PA)^T$  then $x^T(A^TP+PA)x=2x^TPAx$.\\
+After cancellation,
+$$\frac{d}{dt}(x^TPx)=-x^TPBR^{-1}B^TPx-x^TQx$$
+Since $u=-R^{-1}(t)B(t)^TP(t)x$ then 
+$$\frac{d}{dt}(x^TPx)=-(u^TRu+x^TQx).$$
+Taking the integral from $t_0$ to $t_f$ in both side and multiplying by $\frac{1}{2}$, we obtain
+\begin {equation}
+\frac{1}{2}x^T(t_0)P(t_0)x(t_0)=\frac{1}{2}\int_{t_0}^{t_f}(u^TR(t)u+x^TQ(t)x)dt
+\end{equation}
+which shows that $J_{min}=\frac{1}{2}{x^*}^T(t_0)P(t_0)x^*(t_0).$\\
+To show that $u^*=-R^{-1}(t)B(t)^TP(t)x^*$ is the optimal solution, we can verify the three conditions  of the theorem 4.\\
+From (30), we can choose a test function defined in ${\mathbb R}^{n+1}$
+as $J_1(x,t)=\frac{1}{2}x^TP(t)x$ where $(x,t)\in \{(x,t)/ t<t_f\}.$\\
+We can show that the test function satisfies the three conditions in  theorem 4.\\
+Since $P(t_f)=0$ then $lim_{t->t_f}J_1(x,t)=lim_{t->t_f}J_1(x^*,t)=0$ then 
+condition (i) is satisfied.\\
+For (ii), let\\
+$$g(u)=\hat{L}(x,u)+grad^TJ_1(x,t)\hat{f}(x,u)$$
+so
+$$g(u)=\frac{1}{2}
+({x}^TQ(t)x+{u}^TRu)+\frac{1}{2}grad^T({x}^TPx)
+\left(\begin{array}{c}
+  A(t)x+B(t)u      \\
+1\\   
+\end{array}\right)$$
+$$=\frac{1}{2}
+({x}^TQ(t)x+{u}^TRu)+\frac{1}{2}(2(P(t)x)^T \, \, \, \, \, {x}^T\frac{dP(t)}{dt}x)
+\left(\begin{array}{c}
+  A(t)x+B(t)u      \\
+1\\   
+\end{array}\right)
+$$
+$$=\frac{1}{2}x^{T}Q(t)x+
+\frac{1}{2}u^{T}Ru+x^{T}P(t)A(t)x+x^{T}P(t)B(t)u+
+\frac{1}{2}x^T\frac{dP(t)}{dt}x$$
+Using (17)
+%$$\hat{L}(x,u)+grad^TJ_1(x,t)\hat{f}(x,u)$$
+$$g(u)=\frac{1}{2}{x}^TQ(t)x+\frac{1}{2}{u}^TRu+{x}^TP(t)A(t)x+
+x^TP(t)B(t)u+$$
+$$\frac{1}{2}({x}^TP(t)B(t)R^{-1}(t)B^T(t)P(t)x
+-{x}^TA^T(t)Px-{x}^TP(t)A(t)x-{x}^TQ(t)x)$$
+
+After simplification
+%$$\hat{L}(x,u)+grad^{T}J_1(x,t)\hat{f}(x,u)=$$
+$$g(u)=\frac{1}{2}{u}^{T}Ru+{x}^{T}P(t)B(t)u+
+\frac{1}{2}x^{T}P(t)B(t)R^{-1}(t)B^T(t)P(t)x$$
+The gradient of $g(u)\, \, $,  
+$\nabla_ug(u)=Ru+B^T(t)P(t)x\,$  so $\, \nabla_{u}g(u)=0$ then 
+$u=-R^{-1}B^T(t)P(t)x$\\
+therefore $u=-R^{-1}B^T(t)P(t)x$ is a critical value for $g(u)$.\\
+The Hessian $\nabla_{u}^2=R^T$ which is positive definite, therefore 
+$g(u)$ has a global minimum at $u^*=-R^{-1}B^T(t)P(t)x^*$.
+It can be shown easily   that $g(u^*)=0$. This shows  (ii).\\
+Since $g(u)$ has a global minimum at $u^*$ then
+$g(u)\geq g(u^*)$ for all $u$ and $x$ therefore $g(u)\geq 0$ 
+this shows (iii).
+
+
+
+\end{proof} 
+
+
+
+
+
+ \end{document}
+ 
